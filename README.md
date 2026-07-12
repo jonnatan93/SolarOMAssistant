@@ -14,3 +14,5 @@ Desarrollado por:
 Jonnatan Alexander Rojas García
 
 Con apoyo de ChatGPT.
+# SolarOMAssistant
+Aplicación para automatizar informes diarios de Operación y Mantenimiento de plantas fotovoltaicas.
