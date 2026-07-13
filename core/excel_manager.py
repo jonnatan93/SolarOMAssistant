@@ -1,98 +1,117 @@
+import xlwings as xw
 from pathlib import Path
 from datetime import datetime
 import shutil
 
-from openpyxl import load_workbook
-
-from core.visualizer_reader import VisualizerReader
-from core.file_detector import FileDetector
-
 
 class ExcelManager:
+    """
+    Administra la conexión con Excel.
 
-    TABLES = {
-        1: {"sheet": "Scada", "cell": "C7"},
-        2: {"sheet": "Scada", "cell": "AA7"},
-        3: {"sheet": "Scada", "cell": "BE7"},
-        4: {"sheet": "Scada", "cell": "DI7"},
-        5: {"sheet": "Scada", "cell": "DV7"},
-    }
+    NO contiene lógica del negocio.
+
+    Solamente:
+
+    - Abrir Excel
+    - Abrir libro
+    - Guardar
+    - Cerrar
+    - Obtener hojas
+    """
 
     def __init__(self, master_file):
+
         self.master_file = Path(master_file)
+
         if not self.master_file.exists():
-            raise FileNotFoundError(master_file)
-        self.workbook = None
+            raise FileNotFoundError(
+                f"No existe el archivo:\n{self.master_file}"
+            )
+
+        self.app = None
+        self.book = None
+
+    # ---------------------------------------------------
 
     def create_backup(self):
+
         backup = self.master_file.with_name(
-            f"{self.master_file.stem}_BACKUP_{datetime.now():%Y%m%d_%H%M%S}{self.master_file.suffix}"
+
+            f"{self.master_file.stem}_BACKUP_"
+            f"{datetime.now():%Y%m%d_%H%M%S}"
+            f"{self.master_file.suffix}"
+
         )
-        shutil.copy2(self.master_file, backup)
+
+        shutil.copy2(
+            self.master_file,
+            backup
+        )
+
         return backup
 
+    # ---------------------------------------------------
+
     def open(self):
-        self.workbook = load_workbook(
-            self.master_file,
-            keep_vba=True
+
+        if self.book is not None:
+            return
+
+        self.app = xw.App(
+            visible=False,
+            add_book=False
         )
 
+        self.app.display_alerts = False
+        self.app.screen_updating = False
+
+        self.book = self.app.books.open(
+            str(self.master_file)
+        )
+
+    # ---------------------------------------------------
+
+    def sheet(self, sheet_name):
+
+        return self.book.sheets[sheet_name]
+
+    # ---------------------------------------------------
+
     def save(self):
-        self.workbook.save(self.master_file)
+
+        self.book.save()
+
+    # ---------------------------------------------------
 
     def close(self):
-        if self.workbook:
-            self.workbook.close()
-            self.workbook = None
 
-    def paste_visualizer(self, visualizer_file, number):
-        result = VisualizerReader.read(visualizer_file, number)
+        if self.book:
 
-        cfg = self.TABLES[number]
-        ws = self.workbook[cfg["sheet"]]
+            self.book.close()
 
-        start = ws[cfg["cell"]]
-        start_row = start.row
-        start_col = start.column
+            self.book = None
 
-        for r in range(start_row, start_row + 200):
-            for c in range(start_col, start_col + result["columns"]):
-                ws.cell(row=r, column=c).value = None
+        if self.app:
 
-        for r, row in enumerate(result["data"]):
-            for c, value in enumerate(row):
-                ws.cell(
-                    row=start_row + r,
-                    column=start_col + c,
-                    value=value
-                )
+            self.app.quit()
 
-        return {
-            "rows": result["rows"],
-            "columns": result["columns"],
-            "last_row": result["last_row"]
-        }
+            self.app = None
 
-    def update_scada(self, folder):
-        backup = self.create_backup()
+    # ---------------------------------------------------
+
+    def __enter__(self):
 
         self.open()
 
-        files = FileDetector.find_visualizers(folder)
+        return self
 
-        summary = {
-            "backup": str(backup),
-            "visualizers": {}
-        }
+    # ---------------------------------------------------
 
-        for number in range(1, 6):
-            summary["visualizers"][number] = self.paste_visualizer(
-                files[number],
-                number
-            )
+    def __exit__(
+        self,
+        exc_type,
+        exc_val,
+        exc_tb
+    ):
 
-        self.save()
         self.close()
-
-        return summary
-
