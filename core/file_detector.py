@@ -4,16 +4,31 @@ from pathlib import Path
 class FileDetector:
 
     @staticmethod
-    def buscar_visualizadores(carpeta):
+    def find_visualizers(folder):
 
-        carpeta = Path(carpeta)
+        folder = Path(folder)
 
-        encontrados = {}
+        if not folder.exists():
+            raise FileNotFoundError(folder)
 
-        for i in range(1, 6):
+        archivos = {}
 
-            archivos = list(carpeta.glob(f"*-{i}.xlsx"))
+        for numero in range(1, 6):
 
-            encontrados[i] = len(archivos) > 0
+            encontrados = list(
+                folder.glob(f"*-{numero}.xlsx")
+            )
 
-        return encontrados
+            if len(encontrados) == 0:
+                raise FileNotFoundError(
+                    f"No se encontró el Visualizador {numero}"
+                )
+
+            if len(encontrados) > 1:
+                raise Exception(
+                    f"Hay más de un Visualizador {numero}"
+                )
+
+            archivos[numero] = encontrados[0]
+
+        return archivos
