@@ -1,7 +1,9 @@
 import customtkinter as ctk
 from tkinter import filedialog
 from pathlib import Path
-
+import threading
+from tkinter import messagebox
+from core.application_controller import ApplicationController
 from core.config_manager import ConfigManager
 
 from ui.theme import (
@@ -34,6 +36,7 @@ class MainWindow(ctk.CTk):
         # ---------------- Configuración ----------------
 
         self.config_data = ConfigManager.load()
+        self.controller = ApplicationController(self)
 
         # ---------------- Título ----------------
 
@@ -68,9 +71,9 @@ class MainWindow(ctk.CTk):
 
         self.build_status()
 
-        self.build_log()
-
         self.build_button()
+
+        self.build_log()
 
         self.validate()
 
@@ -189,13 +192,14 @@ class MainWindow(ctk.CTk):
 
         self.log = ctk.CTkTextbox(
             self.container,
-            height=220
+            height=180
         )
 
         self.log.pack(
             fill="both",
             expand=True,
-            padx=PADDING
+            padx=PADDING,
+            pady=(0, 10)
         )
 
         self.log.insert(
@@ -211,16 +215,19 @@ class MainWindow(ctk.CTk):
 
     def build_button(self):
 
-        self.run_button = ctk.CTkButton(
-            self.container,
-            text="Actualizar Informe",
-            height=45,
-            state="disabled"
-        )
+            self.run_button = ctk.CTkButton(
+                self.container,
+                text="Actualizar Informe",
+                height=45,
+                state="disabled",
+                command=self.controller.start
+            )
 
-        self.run_button.pack(
-            pady=20
-        )
+            self.run_button.pack(
+                fill="x",
+                padx=PADDING,
+                pady=(15, 20)
+            )
 
     # --------------------------------------------------
 
@@ -293,3 +300,38 @@ class MainWindow(ctk.CTk):
             self.run_button.configure(
                 state="disabled"
             )
+    # --------------------------------------------------
+
+    def clear_log(self):
+
+        self.log.configure(state="normal")
+
+        self.log.delete("1.0", "end")
+
+        self.log.configure(state="disabled")
+
+    # --------------------------------------------------
+
+    def log_message(self, message):
+
+        self.after(
+            0,
+            lambda: self._append(message)
+        )
+
+    # --------------------------------------------------
+
+    def _append(self, message):
+
+        from datetime import datetime
+
+        self.log.configure(state="normal")
+
+        self.log.insert(
+            "end",
+            f"{datetime.now():%H:%M:%S}  {message}\n"
+        )
+
+        self.log.see("end")
+
+        self.log.configure(state="disabled")

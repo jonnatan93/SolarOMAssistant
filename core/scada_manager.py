@@ -20,29 +20,29 @@ class ScadaManager:
         self.sheet = excel.sheet(self.SHEET)
         self.first_visualizer = None
 
-    # ----------------------------------------------------
+        # ----------------------------------------------------
 
     def update(self, folder, callback=None):
 
-    archivos = FileDetector.find_visualizers(folder)
+        archivos = FileDetector.find_visualizers(folder)
 
-    self.first_visualizer = archivos[1]
+        self.first_visualizer = archivos[1]
 
-    resumen = {}
+        resumen = {}
 
-    for numero in range(1, 6):
+        for numero in range(1, 6):
 
-        if callback:
-            callback(f"Visualizador {numero}")
+            if callback:
+                callback(f"Visualizador {numero}")
 
-        resultado = self.update_visualizer(
-            archivos[numero],
-            numero
-        )
+            resultado = self.update_visualizer(
+                archivos[numero],
+                numero
+            )
 
-        resumen[numero] = resultado
+            resumen[numero] = resultado
 
-    return resumen
+        return resumen
 
     # ----------------------------------------------------
 
