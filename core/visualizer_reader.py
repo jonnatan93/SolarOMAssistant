@@ -14,6 +14,7 @@ class VisualizerReader:
         3: {"last_column": "BD"},
         4: {"last_column": "M"},
         5: {"last_column": "Q"},
+        6: {"last_column": "N"},
     }
 
     START_ROW = 36

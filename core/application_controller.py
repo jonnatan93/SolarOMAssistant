@@ -1,7 +1,7 @@
 import threading
 from tkinter import messagebox
 
-from core.automation_controller import AutomationController
+from core.report_manager import ReportManager
 
 
 class ApplicationController:
@@ -44,24 +44,19 @@ class ApplicationController:
 
     def execute(self):
 
-        controller = AutomationController(
+        manager = ReportManager()
 
+        report = manager.create(
+             "PR",
             self.window.master_entry.get(),
-
             self.window.folder_entry.get(),
-
             callback=self.window.log_message
-
         )
-
-        resultado = controller.run()
+        resultado = report.run()
 
         self.window.after(
-
-            0,
-
-            lambda: self.finish(resultado)
-
+        0,
+        lambda: self.finish(resultado)
         )
 
     # -----------------------------------------------------

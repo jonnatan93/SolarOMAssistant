@@ -1,24 +1,12 @@
+from core.reports.base_report import BaseReport
+
 from core.excel_manager import ExcelManager
-from core.scada_manager import ScadaManager
-from core.generation_manager import GenerationManager
+from core.managers.scada_manager import ScadaManager
+from core.managers.generation_manager import GenerationManager
+from core.managers.image_manager import ImageManager
 
 
-class AutomationController:
-
-    def __init__(self, master_file, folder, callback=None):
-
-        self.master_file = master_file
-        self.folder = folder
-        self.callback = callback
-
-    # ---------------------------------------------------------
-
-    def notify(self, message):
-
-        if self.callback:
-            self.callback(message)
-
-    # ---------------------------------------------------------
+class ScadaReport(BaseReport):
 
     def run(self):
 
@@ -47,6 +35,15 @@ class AutomationController:
                 callback=self.callback
             )
 
+            self.notify("Actualizando gráficas...")
+
+            with ImageManager(excel.book) as image_manager:
+
+                image_manager.replace_all([
+                    scada.visualizers[i]
+                    for i in range(1, 6)
+                ])
+
             self.notify("Actualizando generación...")
 
             generation_result = generation.update(
@@ -58,15 +55,10 @@ class AutomationController:
             excel.save()
 
             resumen = {
-
                 "backup": backup,
-
                 "scada": scada_result,
-
                 "generation": generation_result,
-
                 "success": True
-
             }
 
             self.notify("Proceso finalizado.")
@@ -74,11 +66,8 @@ class AutomationController:
         except Exception as e:
 
             resumen = {
-
                 "success": False,
-
                 "error": str(e)
-
             }
 
             self.notify(f"ERROR: {e}")

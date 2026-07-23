@@ -4,7 +4,7 @@ from pathlib import Path
 class FileDetector:
 
     @staticmethod
-    def find_visualizers(folder):
+    def find_visualizers(folder, numbers=range(1, 6)):
 
         folder = Path(folder)
 
@@ -13,7 +13,7 @@ class FileDetector:
 
         archivos = {}
 
-        for numero in range(1, 6):
+        for numero in numbers:
 
             encontrados = list(
                 folder.glob(f"*-{numero}.xlsx")

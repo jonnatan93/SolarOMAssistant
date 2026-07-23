@@ -1,4 +1,4 @@
-from core.automation_controller import AutomationController
+from core.report_manager import ReportManager
 
 LIBRO = r"C:\Users\OperadorCaiman\OneDrive - Enerland 2007 Fotovoltaica, S.L\Documentos\O&M\Registro de Variables\Registro de Variables_PR20260707.xlsm"
 
@@ -9,13 +9,16 @@ def progreso(mensaje):
     print(f">>> {mensaje}")
 
 
-controller = AutomationController(
+manager = ReportManager()
+
+report = manager.create(
+    "SCADA",
     LIBRO,
     CARPETA,
     callback=progreso
 )
 
-resultado = controller.run()
+resultado = report.run()
 
 print("\n========== RESULTADO ==========")
 print(resultado)

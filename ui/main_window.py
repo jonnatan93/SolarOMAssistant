@@ -71,6 +71,8 @@ class MainWindow(ctk.CTk):
 
         self.build_status()
 
+        self.build_progress()
+
         self.build_button()
 
         self.build_log()
@@ -176,7 +178,17 @@ class MainWindow(ctk.CTk):
             anchor="w",
             padx=PADDING
         )
+    def build_progress(self):
 
+        self.progress = ctk.CTkProgressBar(self.container)
+
+        self.progress.pack(
+            fill="x",
+            padx=PADDING,
+            pady=(10, 15)
+        )
+
+        self.progress.set(0)
     # --------------------------------------------------
 
     def build_log(self):
@@ -268,7 +280,16 @@ class MainWindow(ctk.CTk):
         ConfigManager.save(self.config_data)
 
         self.validate()
+    def set_progress(self, value):
 
+        self.after(
+            0,
+            lambda: self.progress.set(value)
+        )
+
+    def reset_progress(self):
+
+        self.progress.set(0)
     # --------------------------------------------------
 
     def validate(self):
@@ -335,3 +356,4 @@ class MainWindow(ctk.CTk):
         self.log.see("end")
 
         self.log.configure(state="disabled")
+    
