@@ -1,3 +1,4 @@
+from core.managers import image_manager
 from core.reports.base_report import BaseReport
 
 from core.excel_manager import ExcelManager
@@ -15,10 +16,6 @@ class ScadaReport(BaseReport):
         excel = ExcelManager(self.master_file)
 
         try:
-
-            self.notify("Creando backup...")
-
-            backup = excel.create_backup()
 
             self.notify("Abriendo libro Excel...")
 
@@ -39,10 +36,9 @@ class ScadaReport(BaseReport):
 
             with ImageManager(excel.book) as image_manager:
 
-                image_manager.replace_all([
-                    scada.visualizers[i]
-                    for i in range(1, 6)
-                ])
+                image_manager.replace_all(
+                    scada.visualizers.values()
+                )
 
             self.notify("Actualizando generación...")
 
@@ -55,7 +51,6 @@ class ScadaReport(BaseReport):
             excel.save()
 
             resumen = {
-                "backup": backup,
                 "scada": scada_result,
                 "generation": generation_result,
                 "success": True

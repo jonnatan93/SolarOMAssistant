@@ -216,3 +216,19 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+# ==========================
+# Solar O&M Assistant
+# ==========================
+
+# Configuración local
+settings.json
+
+# Script temporal
+convert_icon.py
+
+# Logs
+logs/
+
+# Archivos temporales de Excel
+~$*.xlsx
+~$*.xlsm

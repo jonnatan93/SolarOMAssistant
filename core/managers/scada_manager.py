@@ -17,32 +17,31 @@ class ScadaManager:
     def __init__(self, excel):
 
         self.excel = excel
+
         self.sheet = excel.sheet(self.SHEET)
 
         self.first_visualizer = None
 
-    # Guarda la lista de visualizadores encontrados
-        self.visualizers = None
+        # Guarda los visualizadores encontrados
+        self.visualizers = {}
 
-        # ----------------------------------------------------
+    # ----------------------------------------------------
 
     def update(self, folder, callback=None):
 
         self.visualizers = FileDetector.find_visualizers(folder)
 
-        archivos = self.visualizers
-
-        self.first_visualizer = archivos[1]
+        self.first_visualizer = self.visualizers[1]
 
         resumen = {}
 
-        for numero in range(1, 6):
+        for numero, archivo in self.visualizers.items():
 
             if callback:
                 callback(f"Visualizador {numero}")
 
             resultado = self.update_visualizer(
-                archivos[numero],
+                archivo,
                 numero
             )
 
@@ -52,7 +51,11 @@ class ScadaManager:
 
     # ----------------------------------------------------
 
-    def update_visualizer(self, visualizer_file, number):
+    def update_visualizer(
+        self,
+        visualizer_file,
+        number
+    ):
 
         resultado = VisualizerReader.read(
             visualizer_file,
@@ -76,14 +79,20 @@ class ScadaManager:
 
     # ----------------------------------------------------
 
-    def clear_previous_data(self, start_cell, columns):
+    def clear_previous_data(
+        self,
+        start_cell,
+        columns
+    ):
 
         start = self.sheet.range(start_cell)
 
         start_row = start.row
+
         start_col = start.column
 
         end_row = start_row + 200
+
         end_col = start_col + columns - 1
 
         self.sheet.range(

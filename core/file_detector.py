@@ -25,9 +25,9 @@ class FileDetector:
                 )
 
             if len(encontrados) > 1:
-                raise Exception(
+                raise RuntimeError(
                     f"Hay más de un Visualizador {numero}"
-                )
+            )
 
             archivos[numero] = encontrados[0]
 

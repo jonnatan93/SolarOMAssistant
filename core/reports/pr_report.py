@@ -15,10 +15,6 @@ class PRReport(BaseReport):
 
         try:
 
-            self.notify("Creando backup...")
-
-            backup = excel.create_backup()
-
             self.notify("Abriendo libro Excel...")
 
             excel.open()
@@ -46,7 +42,6 @@ class PRReport(BaseReport):
             excel.save()
 
             resumen = {
-                "backup": backup,
                 "pr": pr_result,
                 "success": True
             }

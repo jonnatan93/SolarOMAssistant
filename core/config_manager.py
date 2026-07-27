@@ -1,27 +1,57 @@
 import json
-import os
-
-CONFIG_FILE = "config/settings.json"
+from pathlib import Path
 
 
 class ConfigManager:
 
-    @staticmethod
-    def load():
+    CONFIG_FILE = Path("settings.json")
 
-        if not os.path.exists(CONFIG_FILE):
-            return {
-                "master_file": "",
-                "visualizer_folder": ""
-            }
+    DEFAULT_CONFIG = {
+        "master_file": "",
+        "visualizer_folder": ""
+    }
 
-        with open(CONFIG_FILE, "r", encoding="utf-8") as file:
-            return json.load(file)
+    @classmethod
+    def load(cls):
 
-    @staticmethod
-    def save(config):
+        if not cls.CONFIG_FILE.exists():
 
-        os.makedirs("config", exist_ok=True)
+            cls.save(cls.DEFAULT_CONFIG)
 
-        with open(CONFIG_FILE, "w", encoding="utf-8") as file:
-            json.dump(config, file, indent=4)
+            return cls.DEFAULT_CONFIG.copy()
+
+        try:
+
+            with open(
+                cls.CONFIG_FILE,
+                "r",
+                encoding="utf-8"
+            ) as f:
+
+                data = json.load(f)
+
+            config = cls.DEFAULT_CONFIG.copy()
+
+            config.update(data)
+
+            return config
+
+        except Exception:
+
+            return cls.DEFAULT_CONFIG.copy()
+
+    @classmethod
+    def save(cls, config):
+
+        with open(
+            cls.CONFIG_FILE,
+            "w",
+            encoding="utf-8"
+        ) as f:
+
+            json.dump(
+                config,
+                f,
+                indent=4,
+                ensure_ascii=False
+            )

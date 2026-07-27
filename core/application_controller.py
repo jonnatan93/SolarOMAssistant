@@ -1,5 +1,5 @@
 import threading
-from tkinter import messagebox
+from pathlib import Path
 
 from core.report_manager import ReportManager
 
@@ -9,92 +9,73 @@ class ApplicationController:
     def __init__(self, window):
 
         self.window = window
+        self.manager = ReportManager()
 
-    # -----------------------------------------------------
+    # ----------------------------------------------------
 
     def start(self):
 
-        self.window.run_button.configure(
-            state="disabled",
-            text="Procesando..."
-        )
-
-        self.window.status.set_status(
-            "Ejecutando..."
-        )
-
-        self.window.clear_log()
-
-        self.window.log_message(
-            "========================================"
-        )
-
-        self.window.log_message(
-            "Solar O&M Assistant iniciado."
-        )
-
-        hilo = threading.Thread(
-            target=self.execute,
+        threading.Thread(
+            target=self.run,
             daemon=True
-        )
+        ).start()
 
-        hilo.start()
+    # ----------------------------------------------------
 
-    # -----------------------------------------------------
+    def run(self):
 
-    def execute(self):
+        try:
 
-        manager = ReportManager()
+            self.window.run_button.configure(state="disabled")
 
-        report = manager.create(
-             "PR",
-            self.window.master_entry.get(),
-            self.window.folder_entry.get(),
-            callback=self.window.log_message
-        )
-        resultado = report.run()
+            self.window.clear_log()
+            self.window.log_message("Iniciando proceso...")
 
-        self.window.after(
-        0,
-        lambda: self.finish(resultado)
-        )
+            master = self.window.master_entry.get()
+            folder = self.window.folder_entry.get()
 
-    # -----------------------------------------------------
+            report_type = self.detect_report(master)
 
-    def finish(self, resultado):
-
-        self.window.run_button.configure(
-
-            state="normal",
-
-            text="Actualizar Informe"
-
-        )
-
-        if resultado["success"]:
-
-            self.window.status.set_status(
-                "Finalizado"
+            self.window.log_message(
+                f"Tipo de informe detectado: {report_type}"
             )
 
-            messagebox.showinfo(
-
-                "Solar O&M Assistant",
-
-                "Proceso terminado correctamente."
-
+            report = self.manager.create(
+                report_type,
+                master,
+                folder,
+                callback=self.window.log_message
             )
 
-        else:
+            resultado = report.run()
 
-            self.window.status.set_status(
-                "Error"
-            )
+            if resultado["success"]:
 
-            messagebox.showerror(
+                self.window.log_message(
+                    "Proceso finalizado correctamente."
+                )
 
-                "Solar O&M Assistant",
+            else:
 
-                resultado["error"]
+                self.window.log_message(
+                    resultado["error"]
+                )
 
-            )
+        except Exception as e:
+
+            self.window.log_message(str(e))
+
+        finally:
+
+            self.window.run_button.configure(state="normal")
+
+    # ----------------------------------------------------
+
+    def detect_report(self, master_file):
+
+        nombre = Path(master_file).stem.upper()
+
+        if "PR" in nombre:
+            return "PR"
+
+        return "SCADA"
