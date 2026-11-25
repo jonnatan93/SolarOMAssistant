@@ -46,29 +46,28 @@ class ApplicationController:
             self.window.log_message(f"Libro maestro: {master}")
             self.window.log_message(f"Carpeta visualizadores: {folder}")
 
-            self.window.set_progress(0.10)
+            self.window.set_progress(0.05)
 
             report = self.manager.create(
                 report_type,
                 master,
                 folder,
-                callback=self.window.log_message
+                callback=self.window.log_message,
+                progress_callback=self.window.set_progress
             )
-
-            self.window.set_progress(0.30)
 
             resultado = report.run()
 
-            self.window.set_progress(1.0)
-
             if resultado["success"]:
 
+                self.window.set_progress(1.0)
                 self.window.set_status("Finalizado correctamente")
                 self.window.log_message("")
                 self.window.log_message("✅ Proceso finalizado correctamente.")
 
             else:
 
+                self.window.set_progress(0)
                 self.window.set_status("Finalizado con errores")
                 self.window.log_message("")
                 self.window.log_message("❌ El proceso terminó con errores.")

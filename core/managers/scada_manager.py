@@ -27,18 +27,32 @@ class ScadaManager:
 
     # ----------------------------------------------------
 
-    def update(self, folder, callback=None):
+    def update(
+        self,
+        folder,
+        callback=None,
+        visualizers=None,
+        progress_callback=None
+    ):
 
-        self.visualizers = FileDetector.find_visualizers(folder)
+        self.visualizers = (
+            visualizers
+            if visualizers is not None
+            else FileDetector.find_visualizers(folder)
+        )
 
         self.first_visualizer = self.visualizers[1]
 
         resumen = {}
+        total = len(self.visualizers)
 
-        for numero, archivo in self.visualizers.items():
+        for idx, (numero, archivo) in enumerate(
+            self.visualizers.items(),
+            start=1
+        ):
 
             if callback:
-                callback(f"Visualizador {numero}")
+                callback(f"Leyendo y actualizando Visualizador {numero}...")
 
             resultado = self.update_visualizer(
                 archivo,
@@ -46,6 +60,9 @@ class ScadaManager:
             )
 
             resumen[numero] = resultado
+
+            if progress_callback and total > 0:
+                progress_callback(idx / total)
 
         return resumen
 
@@ -64,7 +81,8 @@ class ScadaManager:
 
         destino = self.TABLES[number]
 
-        self.clear_previous_data(
+        self.excel.clear_table_data(
+            self.sheet,
             destino,
             resultado["columns"]
         )
@@ -76,26 +94,3 @@ class ScadaManager:
             "columns": resultado["columns"],
             "last_row": resultado["last_row"]
         }
-
-    # ----------------------------------------------------
-
-    def clear_previous_data(
-        self,
-        start_cell,
-        columns
-    ):
-
-        start = self.sheet.range(start_cell)
-
-        start_row = start.row
-
-        start_col = start.column
-
-        end_row = start_row + 200
-
-        end_col = start_col + columns - 1
-
-        self.sheet.range(
-            (start_row, start_col),
-            (end_row, end_col)
-        ).clear_contents()

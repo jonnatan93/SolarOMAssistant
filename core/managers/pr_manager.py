@@ -17,11 +17,12 @@ class PRManager:
 
     # -----------------------------------------------------
 
-    def update(self, folder, callback=None):
+    def update(self, folder, callback=None, visualizers=None):
 
-        archivos = FileDetector.find_visualizers(
-            folder,
-            numbers=[6]
+        archivos = (
+            visualizers
+            if visualizers is not None
+            else FileDetector.find_visualizers(folder, numbers=[6])
         )
 
         self.visualizer = archivos[6]
@@ -34,7 +35,8 @@ class PRManager:
             6
         )
 
-        self.clear_previous_data(
+        self.excel.clear_table_data(
+            self.sheet,
             self.DESTINO,
             resultado["columns"]
         )
@@ -48,20 +50,3 @@ class PRManager:
             "columns": resultado["columns"],
             "last_row": resultado["last_row"]
         }
-
-    # -----------------------------------------------------
-
-    def clear_previous_data(self, start_cell, columns):
-
-        start = self.sheet.range(start_cell)
-
-        start_row = start.row
-        start_col = start.column
-
-        end_row = start_row + 200
-        end_col = start_col + columns - 1
-
-        self.sheet.range(
-            (start_row, start_col),
-            (end_row, end_col)
-        ).clear_contents()

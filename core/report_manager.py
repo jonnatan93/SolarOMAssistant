@@ -34,7 +34,8 @@ class ReportManager:
         report_type,
         master_file,
         folder,
-        callback=None
+        callback=None,
+        progress_callback=None
     ):
 
         info = self.REPORT_TYPES.get(report_type)
@@ -49,5 +50,6 @@ class ReportManager:
         return report_class(
             master_file,
             folder,
-            callback
+            callback=callback,
+            progress_callback=progress_callback
         )

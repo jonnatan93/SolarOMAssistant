@@ -388,7 +388,9 @@ class ImageManager:
 
     def replace_all_images(
         self,
-        visualizer_files
+        visualizer_files,
+        callback=None,
+        progress_callback=None
     ):
         """
         Reemplaza todas las imágenes del libro maestro.
@@ -408,6 +410,8 @@ class ImageManager:
             "\nIniciando reemplazo de imágenes...\n"
         )
 
+        total = len(visualizer_files)
+
         for index, file in enumerate(
             visualizer_files,
             start=1
@@ -418,10 +422,16 @@ class ImageManager:
                 f"{Path(file).name}"
             )
 
+            if callback:
+                callback(f"Actualizando gráfica {index}/{self.count}...")
+
             self.replace_picture(
                 index,
                 file
             )
+
+            if progress_callback and total > 0:
+                progress_callback(index / total)
 
         print(
             "\nProceso finalizado correctamente."
@@ -550,7 +560,9 @@ class ImageManager:
 
     def replace_all(
         self,
-        visualizer_files
+        visualizer_files,
+        callback=None,
+        progress_callback=None
     ):
         """
         Alias para mantener compatibilidad
@@ -558,7 +570,9 @@ class ImageManager:
         """
 
         return self.replace_all_images(
-            visualizer_files
+            visualizer_files,
+            callback=callback,
+            progress_callback=progress_callback
         )
 
     # ---------------------------------------------------------

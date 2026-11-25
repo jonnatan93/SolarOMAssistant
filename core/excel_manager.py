@@ -54,16 +54,9 @@ class ExcelManager:
 
     def sheet(self, sheet_name):
 
-        print("\n========== BUSCANDO HOJA ==========")
-        print(f"Hoja solicitada: '{sheet_name}'")
-
-        for i, sh in enumerate(self.book.sheets):
-
-            print(f"[{i}] '{sh.name}'")
+        for sh in self.book.sheets:
 
             if sh.name.strip() == sheet_name.strip():
-
-                print(f"Hoja encontrada en índice {i}")
 
                 return sh
 
@@ -73,6 +66,30 @@ class ExcelManager:
             f"No se encontró la hoja '{sheet_name}'.\n"
             f"Hojas disponibles:\n{disponibles}"
         )
+
+    # ---------------------------------------------------
+
+    def clear_table_data(self, sheet, start_cell, columns):
+        """
+        Limpia el contenido de una tabla desde start_cell hasta la última fila
+        usada en la hoja, cubriendo exactamente `columns` columnas.
+        """
+
+        if columns <= 0:
+            return
+
+        start = sheet.range(start_cell)
+
+        start_row = start.row
+        start_col = start.column
+
+        last_row = max(start_row, sheet.used_range.last_cell.row)
+        end_col = start_col + columns - 1
+
+        sheet.range(
+            (start_row, start_col),
+            (last_row, end_col)
+        ).clear_contents()
 
     # ---------------------------------------------------
 
