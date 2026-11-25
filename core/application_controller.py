@@ -1,5 +1,5 @@
 import threading
-from pathlib import Path
+import traceback
 
 from core.report_manager import ReportManager
 
@@ -26,19 +26,27 @@ class ApplicationController:
 
         try:
 
-            self.window.run_button.configure(state="disabled")
+            self.window.set_running_state(True)
 
             self.window.clear_log()
+
+            self.window.set_progress(0)
+
+            self.window.log_message("======================================")
+            self.window.log_message("Solar O&M Assistant")
             self.window.log_message("Iniciando proceso...")
+            self.window.log_message("======================================")
 
             master = self.window.master_entry.get()
             folder = self.window.folder_entry.get()
+            report_type = self.window.get_selected_report_type()
+            report_label = ReportManager.get_label(report_type)
 
-            report_type = self.detect_report(master)
+            self.window.log_message(f"Actividad seleccionada: {report_label} ({report_type})")
+            self.window.log_message(f"Libro maestro: {master}")
+            self.window.log_message(f"Carpeta visualizadores: {folder}")
 
-            self.window.log_message(
-                f"Tipo de informe detectado: {report_type}"
-            )
+            self.window.set_progress(0.10)
 
             report = self.manager.create(
                 report_type,
@@ -47,35 +55,37 @@ class ApplicationController:
                 callback=self.window.log_message
             )
 
+            self.window.set_progress(0.30)
+
             resultado = report.run()
+
+            self.window.set_progress(1.0)
 
             if resultado["success"]:
 
-                self.window.log_message(
-                    "Proceso finalizado correctamente."
-                )
+                self.window.set_status("Finalizado correctamente")
+                self.window.log_message("")
+                self.window.log_message("✅ Proceso finalizado correctamente.")
 
             else:
 
-                self.window.log_message(
-                    resultado["error"]
-                )
+                self.window.set_status("Finalizado con errores")
+                self.window.log_message("")
+                self.window.log_message("❌ El proceso terminó con errores.")
+                self.window.log_message(resultado["error"])
 
-        except Exception as e:
+        except Exception:
 
-            self.window.log_message(str(e))
+            self.window.set_progress(0)
+            self.window.set_status("Error no controlado")
+
+            self.window.log_message("")
+            self.window.log_message("======================================")
+            self.window.log_message("❌ ERROR NO CONTROLADO")
+            self.window.log_message("======================================")
+            self.window.log_message(traceback.format_exc())
+            self.window.log_message("======================================")
 
         finally:
 
-            self.window.run_button.configure(state="normal")
-
-    # ----------------------------------------------------
-
-    def detect_report(self, master_file):
-
-        nombre = Path(master_file).stem.upper()
-
-        if "PR" in nombre:
-            return "PR"
-
-        return "SCADA"
+            self.window.set_running_state(False)

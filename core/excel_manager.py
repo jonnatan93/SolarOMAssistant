@@ -1,7 +1,5 @@
 import xlwings as xw
 from pathlib import Path
-from datetime import datetime
-import shutil
 
 
 class ExcelManager:
@@ -33,25 +31,6 @@ class ExcelManager:
 
     # ---------------------------------------------------
 
-    def create_backup(self):
-
-        backup = self.master_file.with_name(
-
-            f"{self.master_file.stem}_BACKUP_"
-            f"{datetime.now():%Y%m%d_%H%M%S}"
-            f"{self.master_file.suffix}"
-
-        )
-
-        shutil.copy2(
-            self.master_file,
-            backup
-        )
-
-        return backup
-
-    # ---------------------------------------------------
-
     def open(self):
 
         if self.book is not None:
@@ -71,9 +50,31 @@ class ExcelManager:
 
     # ---------------------------------------------------
 
+        # ---------------------------------------------------
+
     def sheet(self, sheet_name):
 
-        return self.book.sheets[sheet_name]
+        print("\n========== BUSCANDO HOJA ==========")
+        print(f"Hoja solicitada: '{sheet_name}'")
+
+        for i, sh in enumerate(self.book.sheets):
+
+            print(f"[{i}] '{sh.name}'")
+
+            if sh.name.strip() == sheet_name.strip():
+
+                print(f"Hoja encontrada en índice {i}")
+
+                return sh
+
+        disponibles = [repr(sh.name) for sh in self.book.sheets]
+
+        raise Exception(
+            f"No se encontró la hoja '{sheet_name}'.\n"
+            f"Hojas disponibles:\n{disponibles}"
+        )
+
+    # ---------------------------------------------------
 
     # ---------------------------------------------------
 

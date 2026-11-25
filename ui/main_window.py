@@ -1,10 +1,9 @@
 import customtkinter as ctk
 from tkinter import filedialog
 from pathlib import Path
-import threading
-from tkinter import messagebox
 from core.application_controller import ApplicationController
 from core.config_manager import ConfigManager
+from core.report_manager import ReportManager
 
 from ui.theme import (
     APP_WIDTH,
@@ -67,6 +66,8 @@ class MainWindow(ctk.CTk):
             pady=20
         )
 
+        self.build_report_selector()
+
         self.build_paths()
 
         self.build_status()
@@ -81,6 +82,56 @@ class MainWindow(ctk.CTk):
 
     # --------------------------------------------------
 
+    def build_report_selector(self):
+
+        SectionTitle(
+            self.container,
+            text="📋 Tipo de Actividad"
+        ).pack(
+            anchor="w",
+            padx=PADDING,
+            pady=(15, 5)
+        )
+
+        self.report_options = ReportManager.get_report_options()
+
+        labels = list(self.report_options.keys())
+
+        saved_type = self.config_data.get("report_type", "SCADA")
+        initial_label = ReportManager.get_label(saved_type)
+        if initial_label not in self.report_options:
+            initial_label = labels[0]
+
+        self.report_selector = ctk.CTkOptionMenu(
+            self.container,
+            values=labels,
+            command=self.on_report_type_change
+        )
+
+        self.report_selector.set(initial_label)
+
+        self.report_selector.pack(
+            fill="x",
+            padx=PADDING
+        )
+
+    # --------------------------------------------------
+
+    def on_report_type_change(self, selected_label):
+
+        report_type = self.report_options.get(selected_label, "SCADA")
+        self.config_data["report_type"] = report_type
+        ConfigManager.save(self.config_data)
+
+    # --------------------------------------------------
+
+    def get_selected_report_type(self):
+
+        selected_label = self.report_selector.get()
+        return self.report_options.get(selected_label, "SCADA")
+
+    # --------------------------------------------------
+
     def build_paths(self):
 
         SectionTitle(
@@ -89,7 +140,7 @@ class MainWindow(ctk.CTk):
         ).pack(
             anchor="w",
             padx=PADDING,
-            pady=(20, 5)
+            pady=(15, 5)
         )
 
         frame = ctk.CTkFrame(
@@ -127,7 +178,7 @@ class MainWindow(ctk.CTk):
         ).pack(
             anchor="w",
             padx=PADDING,
-            pady=(20, 5)
+            pady=(15, 5)
         )
 
         frame = ctk.CTkFrame(
@@ -167,7 +218,7 @@ class MainWindow(ctk.CTk):
         ).pack(
             anchor="w",
             padx=PADDING,
-            pady=(25, 5)
+            pady=(15, 5)
         )
 
         self.status = StatusLabel(
@@ -185,7 +236,7 @@ class MainWindow(ctk.CTk):
         self.progress.pack(
             fill="x",
             padx=PADDING,
-            pady=(10, 15)
+            pady=(10, 10)
         )
 
         self.progress.set(0)
@@ -199,12 +250,12 @@ class MainWindow(ctk.CTk):
         ).pack(
             anchor="w",
             padx=PADDING,
-            pady=(25, 5)
+            pady=(10, 5)
         )
 
         self.log = ctk.CTkTextbox(
             self.container,
-            height=180
+            height=150
         )
 
         self.log.pack(
@@ -238,7 +289,7 @@ class MainWindow(ctk.CTk):
             self.run_button.pack(
                 fill="x",
                 padx=PADDING,
-                pady=(15, 20)
+                pady=(10, 10)
             )
 
     # --------------------------------------------------
@@ -246,7 +297,13 @@ class MainWindow(ctk.CTk):
     def select_master(self):
 
         filename = filedialog.askopenfilename(
-            filetypes=[("Excel", "*.xlsm *.xlsx")]
+            title="Seleccione el libro maestro",
+            filetypes=[
+                ("Libros de Excel", "*.xlsm *.xlsx"),
+                ("Libros con macros (*.xlsm)", "*.xlsm"),
+                ("Libros de Excel (*.xlsx)", "*.xlsx"),
+                ("Todos los archivos", "*.*"),
+            ]
         )
 
         if not filename:
@@ -292,7 +349,7 @@ class MainWindow(ctk.CTk):
         self.progress.set(0)
     # --------------------------------------------------
 
-    def validate(self):
+    def validate(self, update_status=True):
 
         master_ok = Path(
             self.master_entry.get()
@@ -304,9 +361,10 @@ class MainWindow(ctk.CTk):
 
         if master_ok and folder_ok:
 
-            self.status.set_status(
-                "Listo para iniciar"
-            )
+            if update_status:
+                self.status.set_status(
+                    "Listo para iniciar"
+                )
 
             self.run_button.configure(
                 state="normal"
@@ -314,16 +372,45 @@ class MainWindow(ctk.CTk):
 
         else:
 
-            self.status.set_status(
-                "Seleccione rutas válidas"
-            )
+            if update_status:
+                self.status.set_status(
+                    "Seleccione rutas válidas"
+                )
 
             self.run_button.configure(
                 state="disabled"
             )
     # --------------------------------------------------
 
+    def set_running_state(self, is_running):
+
+        self.after(
+            0,
+            lambda: self._apply_running_state(is_running)
+        )
+
+    def _apply_running_state(self, is_running):
+
+        if is_running:
+            self.run_button.configure(state="disabled")
+            self.report_selector.configure(state="disabled")
+            self.status.set_status("Ejecutando...")
+        else:
+            self.report_selector.configure(state="normal")
+            self.validate(update_status=False)
+
+    def set_status(self, text):
+
+        self.after(
+            0,
+            lambda: self.status.set_status(text)
+        )
+
     def clear_log(self):
+
+        self.after(0, self._clear_log)
+
+    def _clear_log(self):
 
         self.log.configure(state="normal")
 

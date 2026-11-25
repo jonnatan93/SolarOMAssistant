@@ -1,10 +1,11 @@
-from core.managers import image_manager
 from core.reports.base_report import BaseReport
 
 from core.excel_manager import ExcelManager
 from core.managers.scada_manager import ScadaManager
 from core.managers.generation_manager import GenerationManager
 from core.managers.image_manager import ImageManager
+
+import traceback
 
 
 class ScadaReport(BaseReport):
@@ -58,14 +59,19 @@ class ScadaReport(BaseReport):
 
             self.notify("Proceso finalizado.")
 
-        except Exception as e:
+        except Exception:
+
+            error = traceback.format_exc()
 
             resumen = {
                 "success": False,
-                "error": str(e)
+                "error": error
             }
 
-            self.notify(f"ERROR: {e}")
+            self.notify("")
+            self.notify("========== ERROR ==========")
+            self.notify(error)
+            self.notify("===========================")
 
         finally:
 

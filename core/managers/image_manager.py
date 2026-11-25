@@ -37,7 +37,27 @@ class ImageManager:
 
         self.workbook = workbook
 
-        self.sheet = self.workbook.sheets["Scada"]
+        # Buscar la hoja "Scada" ignorando espacios
+        self.sheet = None
+
+        for sh in self.workbook.sheets:
+
+            if sh.name.strip().lower() == "scada":
+
+                self.sheet = sh
+                break
+
+        if self.sheet is None:
+
+            disponibles = [
+                repr(s.name)
+                for s in self.workbook.sheets
+            ]
+
+            raise RuntimeError(
+                "No se encontró la hoja Scada.\n"
+                f"Hojas disponibles:\n{disponibles}"
+            )
 
         self.temp_dir = tempfile.mkdtemp(
             prefix="solarom_images_"
@@ -119,7 +139,6 @@ class ImageManager:
     # ---------------------------------------------------------
     # EXTRACCIÓN DE IMAGEN DESDE VISUALIZADOR
     # ---------------------------------------------------------
-
     def _extract_image(
         self,
         visualizer_file: str
@@ -185,6 +204,7 @@ class ImageManager:
                     )
 
             return destination
+
     # ---------------------------------------------------------
     # REEMPLAZAR UNA IMAGEN
     # ---------------------------------------------------------
@@ -280,7 +300,6 @@ class ImageManager:
         print(
             f"Imagen {index} reemplazada correctamente."
         )
-
     # ---------------------------------------------------------
     # REEMPLAZAR VARIAS IMÁGENES
     # ---------------------------------------------------------
@@ -362,6 +381,7 @@ class ImageManager:
                 print(
                     f"{idx} -> Shape inválido."
                 )
+
     # ---------------------------------------------------------
     # REEMPLAZAR TODAS LAS IMÁGENES
     # ---------------------------------------------------------
@@ -406,7 +426,6 @@ class ImageManager:
         print(
             "\nProceso finalizado correctamente."
         )
-
     # ---------------------------------------------------------
     # LIMPIEZA
     # ---------------------------------------------------------
@@ -461,6 +480,7 @@ class ImageManager:
         except Exception:
 
             pass
+
     # ---------------------------------------------------------
     # INFORMACIÓN
     # ---------------------------------------------------------
@@ -540,6 +560,7 @@ class ImageManager:
         return self.replace_all_images(
             visualizer_files
         )
+
     # ---------------------------------------------------------
     # REPRESENTACIÓN
     # ---------------------------------------------------------

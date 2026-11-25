@@ -8,7 +8,8 @@ class ConfigManager:
 
     DEFAULT_CONFIG = {
         "master_file": "",
-        "visualizer_folder": ""
+        "visualizer_folder": "",
+        "report_type": "SCADA"
     }
 
     @classmethod
