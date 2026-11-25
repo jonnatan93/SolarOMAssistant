@@ -141,7 +141,8 @@ class ImageManager:
     # ---------------------------------------------------------
     def _extract_image(
         self,
-        visualizer_file: str
+        visualizer_file: str,
+        index: int | None = None
     ):
         """
         Extrae la primera imagen encontrada
@@ -182,9 +183,13 @@ class ImageManager:
                     "en el Visualizador."
                 )
 
-            image_name = os.path.basename(
-                media[0]
+            prefix = (
+                f"{index}_"
+                if index is not None
+                else f"{visualizer_file.stem}_"
             )
+
+            image_name = f"{prefix}{os.path.basename(media[0])}"
 
             destination = os.path.join(
                 self.temp_dir,
@@ -231,7 +236,8 @@ class ImageManager:
             )
 
         image_path = self._extract_image(
-            visualizer_file
+            visualizer_file,
+            index=index
         )
 
         pos = self.positions[index - 1]

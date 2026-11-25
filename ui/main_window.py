@@ -351,13 +351,12 @@ class MainWindow(ctk.CTk):
 
     def validate(self, update_status=True):
 
-        master_ok = Path(
-            self.master_entry.get()
-        ).exists()
+        master_text = self.master_entry.get().strip()
+        folder_text = self.folder_entry.get().strip()
 
-        folder_ok = Path(
-            self.folder_entry.get()
-        ).exists()
+        master_ok = bool(master_text) and Path(master_text).is_file()
+
+        folder_ok = bool(folder_text) and Path(folder_text).is_dir()
 
         if master_ok and folder_ok:
 
